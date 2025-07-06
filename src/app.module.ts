@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { RegistrationModule } from './registration/registration.module';
+import { MediaModule } from './media/media.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -20,6 +21,7 @@ import { RegistrationModule } from './registration/registration.module';
       }),
     }),
     RegistrationModule,
+    MediaModule,
   ],
 })
 export class AppModule {}

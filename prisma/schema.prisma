@@ -30,3 +30,20 @@ model Code {
 
   @@map("codes")
 }
+
+model Media {
+  id String @id @default(uuid())
+  type MediaType
+  url String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("media")
+}
+
+enum MediaType {
+  HEADER_LOGO
+  LANDING_VIDEO
+  TERMS_LOGO
+  TERMS_PDF
+}
