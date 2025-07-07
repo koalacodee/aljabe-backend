@@ -8,7 +8,7 @@ import { extname } from 'path';
 export const multerConfig = {
   dest: path.join(process.cwd(), 'uploads'),
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB max file size
+    fileSize: 100 * 1024 * 1024, // 10MB max file size
   },
   fileFilter: (req: Request, file, cb) => {
     const type = req.params.type as MediaType;
@@ -16,6 +16,7 @@ export const multerConfig = {
     switch (type) {
       case MediaType.HEADER_LOGO:
       case MediaType.TERMS_LOGO:
+      case MediaType.SPONSORS_LOGOS:
         allowedMimeTypes = [
           'image/jpeg',
           'image/png',
@@ -26,8 +27,17 @@ export const multerConfig = {
       case MediaType.LANDING_VIDEO:
         allowedMimeTypes = ['video/mp4', 'video/webm'];
         break;
-      case MediaType.TERMS_PDF:
-        allowedMimeTypes = ['application/pdf'];
+      case MediaType.START_AUDIO:
+      case MediaType.END_AUDIO:
+        allowedMimeTypes = [
+          'audio/mpeg', // MP3
+          'audio/wav',
+          'audio/ogg',
+          'audio/webm',
+          'audio/aac',
+          'audio/m4a',
+          'audio/x-m4a',
+        ];
         break;
     }
 
@@ -47,7 +57,7 @@ export const multerConfig = {
     destination: path.join(process.cwd(), 'uploads'),
     filename: (_, file, cb) => {
       const ext = extname(file.originalname);
-      const unique = `${randomUUID()}.${ext}`;
+      const unique = `${randomUUID()}${ext}`;
       cb(null, unique);
     },
   }),

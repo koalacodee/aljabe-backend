@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "MediaType" ADD VALUE 'SPONSORS_LOGOS';

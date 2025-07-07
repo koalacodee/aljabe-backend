@@ -25,4 +25,9 @@ export class CodesController {
   async downloadExcelFile(@Param() params: DownloadCodeDto) {
     return this.codesService.downloadExcelFile(params);
   }
+
+  @Post('export-all')
+  async exportAllCodes() {
+    return this.codesService.exportAllCodes();
+  }
 }

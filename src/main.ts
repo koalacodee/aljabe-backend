@@ -5,7 +5,7 @@ import * as morgan from 'morgan';
 import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { ConfigService } from '@nestjs/config';
-import { json, urlencoded } from 'express';
+import { urlencoded } from 'express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from './core/pipes/validation.pipe';
 import { JsendInterceptor } from './core/interceptors/jsend.interceptor';
@@ -16,7 +16,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   // Body parsing with custom options
-  app.use(json({ limit: '10mb' }));
+  // app.use(json({ limit: '100mb' }));
   app.use(urlencoded({ extended: true }));
   app.use(cookieParser()); // Add cookie parser middleware
 

@@ -11,15 +11,10 @@ export class RegistrationService {
   constructor(private readonly prisma: PrismaService) {}
 
   async register(dto: RegisterDto) {
-    const [phoneTaken, codeExists, codeTaken] = await Promise.all([
-      this.prisma.registration.findUnique({ where: { phone: dto.phone } }),
+    const [codeExists, codeTaken] = await Promise.all([
       this.prisma.code.findUnique({ where: { code: dto.code } }),
       this.prisma.registration.findUnique({ where: { code: dto.code } }),
     ]);
-
-    if (phoneTaken) {
-      throw new ConflictException({ phone: 'phone_already_taken' });
-    }
 
     if (!codeExists) {
       throw new NotFoundException({ code: 'code_not_found' });

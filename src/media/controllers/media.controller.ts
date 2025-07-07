@@ -17,6 +17,11 @@ import { multerConfig } from '../config/multer.config';
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
 
+  @Get('all')
+  async getAllMedia() {
+    return this.mediaService.getAllMedia();
+  }
+
   @Post(':type')
   @UseInterceptors(FileInterceptor('file', multerConfig))
   async createOrUpdateMedia(

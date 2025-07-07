@@ -30,4 +30,22 @@ export class MediaService {
       },
     });
   }
+
+  async getAllMedia() {
+    const media = await this.prisma.media.findMany({
+      select: {
+        type: true,
+        url: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    // Group media by type and get the latest one for each type
+    const groupedMedia = {};
+    media.forEach((item) => {
+      groupedMedia[item.type] = item.url;
+    });
+
+    return groupedMedia;
+  }
 }

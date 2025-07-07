@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DownloadCodeDto } from './dto/download-code.dto';
 import { randomBytes, randomUUID } from 'crypto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CodesService {
@@ -14,7 +15,10 @@ export class CodesService {
   private readonly CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   private readonly UPLOADS_DIR = path.join(process.cwd(), 'uploads');
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+  ) {
     // Ensure uploads directory exists
     if (!fs.existsSync(this.UPLOADS_DIR)) {
       fs.mkdirSync(this.UPLOADS_DIR, { recursive: true });
@@ -87,6 +91,19 @@ export class CodesService {
     }
 
     return { codes };
+  }
+
+  async exportAllCodes(): Promise<{ download: string }> {
+    const codes = await this.prisma.code.findMany({
+      select: {
+        code: true,
+      },
+    });
+
+    const codeValues = codes.map((code) => code.code);
+    const download = `${this.config.get('HOST')}:${this.config.get('PORT')}/public/${await this.createExcelFile(codeValues)}`;
+
+    return { download };
   }
 
   async downloadExcelFile(params: DownloadCodeDto): Promise<StreamableFile> {
