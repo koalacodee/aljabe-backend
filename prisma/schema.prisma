@@ -17,17 +17,18 @@ model Registration {
   id String @id @db.Uuid @default(uuid())
   name String @db.VarChar(50)
   city String @db.VarChar(70)
-  phone String @db.Char(12)
-  code String @db.Char(10) @unique
-
+  phone String @db.VarChar(20) @unique
+  codes Code[]
+  isSingleRegistered Boolean @default(false)
 
   @@map("registrations")
 }
 
 model Code {
   id String @id @db.Uuid @default(uuid())
-  code String @db.Char(10) @unique
-
+  code String @db.VarChar(20) @unique
+  registrationId String? @db.Uuid
+  registration Registration? @relation(fields: [registrationId], references: [id])
   @@map("codes")
 }
 

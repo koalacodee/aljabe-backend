@@ -47,8 +47,13 @@ import { InfoModule } from './info/info.module';
           },
         },
         {
-          rootPath: join(process.cwd(), 'vite-react', 'dist'),
+          rootPath: join(process.cwd(), 'vite-react', 'out'),
           serveRoot: '/', // Vite app at root
+          renderPath: '/*', // SPA wildcard
+        },
+        {
+          rootPath: join(process.cwd(), 'dashboard', 'out'),
+          serveRoot: '/dashboard', // Vite app at root
           renderPath: '/*', // SPA wildcard
         },
       ],

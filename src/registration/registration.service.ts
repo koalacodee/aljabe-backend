@@ -5,30 +5,106 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/core/prisma/prisma.service';
 import RegisterDto from './dto/register.dto';
+import { PaginationDto } from './dto/pagination.dto';
+import { AddCodeDto } from './dto/add-code.dto';
 
 @Injectable()
 export class RegistrationService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async register(dto: RegisterDto) {
-    const [codeExists, codeTaken] = await Promise.all([
-      this.prisma.code.findUnique({ where: { code: dto.code } }),
-      this.prisma.registration.findUnique({ where: { code: dto.code } }),
+  async findRegistrations(pagination: PaginationDto) {
+    const { cursor, limit } = pagination;
+
+    const registrations = await this.prisma.registration.findMany({
+      take: limit + 1,
+      skip: cursor ? 1 : 0,
+      cursor: cursor ? { id: cursor } : undefined,
+      include: { codes: true },
+    });
+
+    const hasNextPage = registrations.length > limit;
+    const items = hasNextPage ? registrations.slice(0, -1) : registrations;
+    const nextCursor = hasNextPage
+      ? registrations[registrations.length - 1].id
+      : undefined;
+
+    return {
+      items,
+      hasNextPage,
+      nextCursor,
+    };
+  }
+
+  async addCode(dto: AddCodeDto) {
+    const [user, code] = await Promise.all([
+      this.prisma.registration.findUnique({
+        where: { id: dto.userId },
+        include: { codes: true },
+      }),
+      this.prisma.code.findUnique({
+        where: { code: dto.code },
+      }),
     ]);
 
-    if (!codeExists) {
+    if (!user) {
+      throw new NotFoundException({ user: 'user_not_found' });
+    }
+
+    if (!code) {
       throw new NotFoundException({ code: 'code_not_found' });
     }
 
-    if (codeTaken) {
+    if (code.registrationId) {
       throw new ConflictException({ code: 'code_already_taken' });
     }
 
-    return await this.prisma.$transaction(async (tx) => {
-      await tx.code.delete({ where: { code: dto.code } });
+    if (user.isSingleRegistered && user.codes.length === 0) {
+      throw new ConflictException({ user: 'single_registration' });
+    }
 
+    return await this.prisma.$transaction(async (tx) => {
+      await tx.code.update({
+        where: { code: dto.code },
+        data: { registration: { connect: { id: dto.userId } } },
+      });
+
+      return tx.registration.findUnique({
+        where: { id: dto.userId },
+        include: { codes: { select: { code: true } } },
+      });
+    });
+  }
+
+  async register(dto: RegisterDto) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { code, ...toInsert } = dto;
+
+    const [phoneRegistered, existingCode] = await Promise.all([
+      this.prisma.registration.findFirst({ where: { phone: dto.phone } }),
+      dto.code
+        ? this.prisma.code.findUnique({ where: { code: dto.code } })
+        : undefined,
+    ]);
+
+    if (dto.code && !existingCode) {
+      throw new NotFoundException({ code: 'code_not_found' });
+    }
+
+    if (dto.code && existingCode.registrationId) {
+      throw new ConflictException({ code: 'code_already_taken' });
+    }
+
+    if (phoneRegistered && phoneRegistered.isSingleRegistered) {
+      throw new ConflictException({ phone: 'single_registration' });
+    }
+
+    return await this.prisma.$transaction(async (tx) => {
       const insertedRegistration = await tx.registration.create({
-        data: dto,
+        data: {
+          ...toInsert,
+          isSingleRegistered: dto.code ? false : true,
+          codes: { connect: { id: existingCode.id } },
+        },
       });
 
       return insertedRegistration;

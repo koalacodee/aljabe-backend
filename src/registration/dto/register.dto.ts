@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, Matches, MaxLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 
 export default class RegisterDto {
   @MaxLength(50, { message: 'name_too_long' })
@@ -15,7 +21,7 @@ export default class RegisterDto {
   @IsNotEmpty({ message: 'phone_required' })
   phone: string;
 
-  @Matches(/^[0-9A-F]{10}$/, { message: 'code_invalid' })
-  @IsNotEmpty({ message: 'code_required' })
-  code;
+  @Matches(/^[0-9A-Z]{12}$/, { message: 'code_invalid' })
+  @IsOptional()
+  code?: string;
 }
