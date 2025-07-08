@@ -21,7 +21,7 @@ export class MediaService {
     // Delete existing media of the same type
     await this.prisma.media.deleteMany({ where: { type } });
 
-    const url = `${this.config.get('HOST')}:${this.config.get('PORT')}/public/${fileName}`;
+    const url = `${this.config.get('HOST')}/public/${fileName}`;
 
     return this.prisma.media.create({
       data: {

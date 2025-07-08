@@ -79,12 +79,9 @@ export class RegistrationService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { code, ...toInsert } = dto;
 
-    const [phoneRegistered, existingCode] = await Promise.all([
-      this.prisma.registration.findFirst({ where: { phone: dto.phone } }),
-      dto.code
-        ? this.prisma.code.findUnique({ where: { code: dto.code } })
-        : undefined,
-    ]);
+    const existingCode = await (dto.code
+      ? this.prisma.code.findUnique({ where: { code: dto.code } })
+      : undefined);
 
     if (dto.code && !existingCode) {
       throw new NotFoundException({ code: 'code_not_found' });
@@ -94,16 +91,16 @@ export class RegistrationService {
       throw new ConflictException({ code: 'code_already_taken' });
     }
 
-    if (phoneRegistered && phoneRegistered.isSingleRegistered) {
-      throw new ConflictException({ phone: 'single_registration' });
-    }
-
     return await this.prisma.$transaction(async (tx) => {
-      const insertedRegistration = await tx.registration.create({
-        data: {
+      const insertedRegistration = await tx.registration.upsert({
+        where: { phone: dto.phone },
+        create: {
           ...toInsert,
-          isSingleRegistered: dto.code ? false : true,
-          codes: { connect: { id: existingCode.id } },
+          codes: dto.code ? { connect: { id: existingCode.id } } : undefined,
+        },
+        update: {
+          ...toInsert,
+          codes: dto.code ? { connect: { id: existingCode.id } } : undefined,
         },
       });
 

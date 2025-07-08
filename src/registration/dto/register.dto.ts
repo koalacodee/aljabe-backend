@@ -21,7 +21,7 @@ export default class RegisterDto {
   @IsNotEmpty({ message: 'phone_required' })
   phone: string;
 
-  @Matches(/^[0-9A-Z]{12}$/, { message: 'code_invalid' })
+  @Matches(/^[0-9A-Z]{8,20}$/, { message: 'code_invalid' })
   @IsOptional()
   code?: string;
 }

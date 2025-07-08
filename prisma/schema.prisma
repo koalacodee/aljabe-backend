@@ -19,7 +19,6 @@ model Registration {
   city String @db.VarChar(70)
   phone String @db.VarChar(20) @unique
   codes Code[]
-  isSingleRegistered Boolean @default(false)
 
   @@map("registrations")
 }
